@@ -73,13 +73,10 @@ memory-game-react/
 - Gestión de eventos
 - Clases CSS dinámicas
 
-## 📷 Screenshots
-
-*Las capturas de pantalla se pueden agregar después de subir el proyecto a GitHub*
 
 ## 👨‍💻 Desarrollado por
 
-**Ricardo Díaz** - Estudiante de Ingeniería en la Universidad del Valle de Guatemala
+**Ricardo Godínez** - Estudiante de Ingeniería en la Universidad del Valle de Guatemala
 
 ---
 
