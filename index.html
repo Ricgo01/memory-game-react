@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Memoria</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url('assets/turf.jpg');
+            background-size: cover;
+            background-position: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .tittle {
+            text-align: center;
+            font-size: 2rem;
+            color: white;
+            margin-bottom: 20px;
+        }
+        .container-memory {
+            text-align: center;
+            max-width: 800px;
+        }
+        .GameGrid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .card {
+            height: 120px;
+            width: 120px;
+            margin: 0 auto;
+            background-color: #2980b9;
+            border-radius: 5px;
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-front {
+            background-color: white;
+            transform: rotateY(180deg);
+        }
+
+        .card-back {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card-back-image {
+            width: 80%; 
+            height: 80%;
+            object-fit: contain;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .stats {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .victory-message {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .victory-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .preview-message {
+            background-color: rgba(52, 152, 219, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;        
+            max-width: 500px;
+            margin: 0 auto 15px;
+        }
+
+        .preview-message button {
+            background-color: white;
+            color: #3498db;
+            border: none;
+            padding: 5px 15px;
+            margin-left: 10px;
+            margin-top: 0;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .preview-message button:hover {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        
+        function MemoryGame() {
+            const [cards, setCards] = React.useState([]);
+            const [flipedCards, setFlipedCards] = React.useState([]);
+            const [correctPairs, setCorrectPairs] = React.useState([]);
+            const [moves, setMoves] = React.useState(0);
+            const [matchCheck, setMatchCheck] = React.useState(false);
+            const [gameOver, setGameOver] = React.useState(false);
+            const [preview, setPreview] = React.useState(true);
+            const [timer, setTimer] = React.useState(0);
+
+            const cardImages = [
+                'assets/img1.png',
+                'assets/img2.png',
+                'assets/img3.png',
+                'assets/img4.png',
+                'assets/img5.png',
+                'assets/img6.png',
+                'assets/img7.png',
+                'assets/img8.png',
+            ];
+
+            React.useEffect(() => {
+                gameStart();
+
+                if(preview){
+                    setTimeout(() =>
+                    setPreview(false), 3000);
+                }
+                
+            }, []);
+
+            React.useEffect(() => {
+                let interval = null;
+                
+                if (!preview && !gameOver) {
+                    interval = setInterval(() => {
+                        setTimer(prevTimer => prevTimer + 1);
+                    }, 1000);
+                }
+
+                return () => {
+                    if (interval) clearInterval(interval);
+                };
+            }, [preview, gameOver]);
+
+            React.useEffect(() => {
+                if (correctPairs.length > 0 && correctPairs.length == 8){
+                    setGameOver(true);
+                }
+            }, [correctPairs]);
+
+            const gameStart = () => {
+                let pairs = [];
+                for (let i = 0; i < 8; i++){
+                    pairs.push({
+                        id: i,
+                        image: cardImages[i],
+                    })
+                    pairs.push({
+                        id: i + 8,
+                        image: cardImages[i],
+                    })
+                }
+
+                for (let i = pairs.length - 1; i > 0; i--){
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
+                }
+
+                setCards(pairs);
+            }
+
+            const flippedAlready = (index) => {
+                if (matchCheck || 
+                    flipedCards.includes(index) || 
+                    correctPairs.includes(cards[index].image)
+                ){
+                    return;
+                }
+            
+
+                const newFlippedCards = [...flipedCards, index];
+                setFlipedCards(newFlippedCards);
+
+                if (newFlippedCards.length == 2){
+                    setMoves(moves +1);
+                    setMatchCheck(true);
+
+                    const firstCard = newFlippedCards[0];
+                    const secondCard = newFlippedCards[1];
+
+                    if(cards[firstCard].image == cards[secondCard].image){
+                        setCorrectPairs([...correctPairs, cards[firstCard].image]);
+                        setFlipedCards([]);
+                        setMatchCheck(false);
+                    } else {
+                        setTimeout(() => {
+                            setFlipedCards([]);
+                            setMatchCheck(false);
+                        }, 1000);
+                    }
+                }
+            };
+
+            const resetGame = () => {
+                    setFlipedCards([]);
+                    setCorrectPairs([]);
+                    setMoves(0);
+                    setGameOver(false);
+                    gameStart();
+                    setPreview(true);
+            };
+
+            return (
+                <div className="container-memory">
+                    <h1 className = "tittle">
+                        Memory game
+                    </h1>
+
+                    <div className="stats">
+                        <p>Movments: {moves}</p>
+                        <p>Time: {timer} seconds</p>
+                        <p>Pairs: {correctPairs.length} / 8</p>
+                    </div>
+
+                    {preview && (
+                        <div className="preview-message">
+                            <p>¡Memorice! Game will start on 3 seconds...</p>
+                            <button onClick={() => setPreview(false)}>Beggin now</button>
+                        </div>
+                    )}
+
+                    <div className="GameGrid" >
+                        {cards.map((card, index) => (
+                            <div
+                                key={card.id}
+                                className={`card ${preview || flipedCards.includes(index) || correctPairs.includes(card.image) ? 'flipped' : ''}`}
+                                onClick={() => !preview && flippedAlready(index)}
+                            >
+
+                            <div className="card-back">
+                                <img src="assets/card-back.png" alt="Card Back" className="card-back-image" />
+                            </div>
+                                <div className="card-front">
+                                    <img src={card.image} alt="Card" className="card-image" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <button onClick={resetGame}>Reset Game</button>
+
+                    {gameOver && (
+                        <div className="victory-message">
+                            <div className="victory-content">
+                                <h2>¡Congrats!</h2>
+                                <p>Completed in {moves} moves</p>
+                                <p>Time: {timer} seconds</p>
+                                <button onClick={resetGame}>Play Again</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<MemoryGame />);
+    </script>
+    
+</body>
+</html>
