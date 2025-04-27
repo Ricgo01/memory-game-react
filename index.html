@@ -335,7 +335,30 @@
                     </div>
 
                     <button onClick={resetGame}>Reset Game</button>
-
+                    <a
+                        href="https://github.com/Ricgo01/memory-game-react"
+                        target="_blank"
+                        rel="noopener noreferrer" 
+                        style={{ 
+                            display: 'inline-block',
+                            backgroundColor: '#24292e',
+                            color: 'white',
+                            border: 'none',
+                            padding: '10px 20px',
+                            marginTop: '15px',
+                            marginLeft: '10px',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            fontSize: '1rem',
+                            textDecoration: 'none'
+                        }}
+                            onMouseOver={(e) => e.target.style.backgroundColor = '#444d56'}
+                            onMouseOut={(e) => e.target.style.backgroundColor = '#24292e'}
+                        >
+                            GitHub
+                    </a>
+                    
+                    
                     {gameOver && (
                         <div className="victory-message">
                             <div className="victory-content">
