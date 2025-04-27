@@ -194,13 +194,22 @@
 
             React.useEffect(() => {
                 gameStart();
-
-                if(preview){
-                    setTimeout(() =>
-                    setPreview(false), 3000);
-                }
-                
             }, []);
+
+            React.useEffect(() => {
+                let timeoutId = null;
+                if (preview) {
+                    timeoutId = setTimeout(() => {
+                        setPreview(false);
+                    }, 3000);
+                }
+                return () => {
+                    if (timeoutId) {
+                        clearTimeout(timeoutId);
+                    }
+                };
+            }, [preview]);
+
 
             React.useEffect(() => {
                 let interval = null;
@@ -216,11 +225,13 @@
                 };
             }, [preview, gameOver]);
 
+
             React.useEffect(() => {
                 if (correctPairs.length > 0 && correctPairs.length == 8){
                     setGameOver(true);
                 }
             }, [correctPairs]);
+
 
             const gameStart = () => {
                 let pairs = [];
@@ -242,6 +253,7 @@
 
                 setCards(pairs);
             }
+
 
             const flippedAlready = (index) => {
                 if (matchCheck || 
@@ -299,7 +311,7 @@
 
                     {preview && (
                         <div className="preview-message">
-                            <p>¡Memorice! Game will start on 3 seconds...</p>
+                            <p>¡Memory! Game will start on 3 seconds...</p>
                             <button onClick={() => setPreview(false)}>Beggin now</button>
                         </div>
                     )}
